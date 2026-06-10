@@ -5,6 +5,40 @@ import random
 from questions import questions
 
 
+def build_shuffled_questions():
+    """Return a freshly shuffled copy of the questions where each question's
+    options are also randomized, so the correct answer is not always the same
+    letter. The original questions list is never mutated."""
+    letters = ["A", "B", "C", "D"]
+    prepared = []
+
+    for question in questions:
+        texts = [
+            option.split(") ", 1)[1] if ") " in option else option
+            for option in question["options"]
+        ]
+        correct_index = ord(question["answer"]) - ord("A")
+
+        order = list(range(len(texts)))
+        random.shuffle(order)
+
+        new_options = []
+        new_answer = question["answer"]
+        for new_position, old_index in enumerate(order):
+            letter = letters[new_position]
+            new_options.append(f"{letter}) {texts[old_index]}")
+            if old_index == correct_index:
+                new_answer = letter
+
+        new_question = dict(question)
+        new_question["options"] = new_options
+        new_question["answer"] = new_answer
+        prepared.append(new_question)
+
+    random.shuffle(prepared)
+    return prepared
+
+
 # Normal mode colors
 NORMAL_BACKGROUND = "#EAF6F6"
 NORMAL_CARD = "#FFFFFF"
@@ -54,8 +88,7 @@ class QuizGame:
 
         self.selected_answer = tk.StringVar(value="NONE")
 
-        self.quiz_questions = questions.copy()
-        random.shuffle(self.quiz_questions)
+        self.quiz_questions = build_shuffled_questions()
 
         self.background_color = NORMAL_BACKGROUND
         self.card_color = NORMAL_CARD
@@ -552,8 +585,7 @@ class QuizGame:
         self.streak = 0
         self.answer_submitted = False
 
-        self.quiz_questions = questions.copy()
-        random.shuffle(self.quiz_questions)
+        self.quiz_questions = build_shuffled_questions()
 
         self.score_label.config(text="Score: 0")
         self.streak_label.config(text="Streak: 0")
